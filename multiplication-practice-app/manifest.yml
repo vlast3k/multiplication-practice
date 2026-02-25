@@ -1,0 +1,13 @@
+---
+applications:
+- name: multiplication-practice-app
+  path: .
+  memory: 256M
+  disk_quota: 512M
+  buildpacks:
+    - nodejs_buildpack
+  command: npm start
+  services:
+    - multiplication-practice-db
+  env:
+    NODE_ENV: production

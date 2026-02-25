@@ -1,0 +1,30 @@
+_schema-version: '3.1'
+ID: multiplication-practice
+version: 1.0.0
+description: Multiplication Practice App for Children
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+  - name: multiplication-practice-app
+    type: nodejs
+    path: .
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    build-parameters:
+      builder: npm-ci
+    requires:
+      - name: multiplication-practice-db
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+
+resources:
+  - name: multiplication-practice-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
