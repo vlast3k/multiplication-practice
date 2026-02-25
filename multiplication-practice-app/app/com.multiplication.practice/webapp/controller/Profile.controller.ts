@@ -232,19 +232,17 @@ export default class Profile extends BaseController {
 	}
 
 	public onNavigateToQuiz(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const quizPage = sap.ui.getCore().byId("__xmlview0--quizPage");
-		if (quizPage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const quizPage = sap.ui.getCore().byId("quizView--quizPage");
+		if (navContainer && quizPage) {
 			navContainer.to(quizPage);
 		}
 	}
 
 	public onNavigateToDashboard(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const dashboardPage = sap.ui.getCore().byId("__xmlview1--dashboardPage");
-		if (dashboardPage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const dashboardPage = sap.ui.getCore().byId("dashboardView--dashboardPage");
+		if (navContainer && dashboardPage) {
 			navContainer.to(dashboardPage);
 		}
 	}

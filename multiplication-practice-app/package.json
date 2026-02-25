@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Multiplication Practice App for Children",
   "dependencies": {
+    "@cap-js/hana": "^2.6.0",
     "@sap/cds": "^9",
-    "@sap/cds-hana": "^2",
     "express": "^4"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^2",
+    "@sap/cds-dk": "^9.7.2",
+    "@ui5/cli": "^4.0.45",
     "cds-plugin-ui5": "^0.16.3"
   },
   "scripts": {

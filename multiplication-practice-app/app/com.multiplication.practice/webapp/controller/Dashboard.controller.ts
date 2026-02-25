@@ -134,7 +134,7 @@ export default class Dashboard extends BaseController {
 			});
 			
 			model.setData({ sessions: formattedSessions });
-			sessionsList.setModel(model);
+			sessionsList.setModel(model, "sessionsModel");
 			
 		} catch (error) {
 			console.error("Failed to load recent sessions:", error);
@@ -160,10 +160,9 @@ export default class Dashboard extends BaseController {
 	}
 
 	public onNavigateToQuiz(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const quizPage = sap.ui.getCore().byId("__xmlview0--quizPage");
-		if (quizPage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const quizPage = sap.ui.getCore().byId("quizView--quizPage");
+		if (navContainer && quizPage) {
 			navContainer.to(quizPage);
 		}
 	}
@@ -174,10 +173,9 @@ export default class Dashboard extends BaseController {
 	}
 
 	public onNavigateToProfile(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const profilePage = sap.ui.getCore().byId("__xmlview2--profilePage");
-		if (profilePage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const profilePage = sap.ui.getCore().byId("profileView--profilePage");
+		if (navContainer && profilePage) {
 			navContainer.to(profilePage);
 		}
 	}

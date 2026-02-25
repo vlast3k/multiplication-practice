@@ -49,11 +49,11 @@
 				<!-- Recent Sessions -->
 				<VBox class="sessionsSection">
 					<Text text="Recent Practice Sessions" class="sectionTitle"/>
-					<List id="sessionsList" items="{/sessions}">
+					<List id="sessionsList" items="{sessionsModel>/sessions}">
 						<StandardListItem
-							title="{date}"
-							description="{questions} questions"
-							info="{stars}"
+							title="{sessionsModel>date}"
+							description="{sessionsModel>questions} questions"
+							info="{sessionsModel>stars}"
 							type="Inactive"/>
 					</List>
 				</VBox>

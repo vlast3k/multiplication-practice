@@ -22,10 +22,10 @@
 		<content>
 			<VBox alignItems="Center" justifyContent="Center" class="quizContainer">
 				<!-- Difficulty Selector -->
-				<SegmentedButton id="difficultySelector" selectionChange=".onDifficultyChange">
+				<SegmentedButton id="difficultySelector" selectedKey="Medium" selectionChange=".onDifficultyChange">
 					<items>
 						<SegmentedButtonItem key="Easy" text="Easy (1-5)"/>
-						<SegmentedButtonItem key="Medium" text="Medium (1-10)" pressed="true"/>
+						<SegmentedButtonItem key="Medium" text="Medium (1-10)"/>
 						<SegmentedButtonItem key="Hard" text="Hard (1-12)"/>
 					</items>
 				</SegmentedButton>

@@ -23,8 +23,8 @@
 			<VBox class="profileContainer">
 				<!-- Avatar and Name -->
 				<VBox alignItems="Center" class="profileHeader">
-					<Text id="avatarDisplay" text="🦄" class="profileAvatar" press=".onAvatarPress"/>
-					<Text id="nameDisplay" text="Emma" class="profileName" press=".onNamePress"/>
+					<Link id="avatarDisplay" text="🦄" class="profileAvatar" press=".onAvatarPress"/>
+					<Link id="nameDisplay" text="Emma" class="profileName" press=".onNamePress"/>
 				</VBox>
 				
 				<!-- Stats Summary -->

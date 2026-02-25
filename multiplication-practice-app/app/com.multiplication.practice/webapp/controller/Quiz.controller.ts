@@ -23,8 +23,12 @@ export default class Quiz extends BaseController {
 		const difficulty = this.getDifficulty();
 		
 		try {
-			// Call generateQuestion action
-			const response = await fetch(`/odata/v4/quiz/generateQuestion(difficulty='${difficulty}')`);
+			// Call generateQuestion action (OData actions require POST)
+			const response = await fetch(`/odata/v4/quiz/generateQuestion`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ difficulty: difficulty })
+			});
 			const data = await response.json();
 			
 			this.currentQuestion = data;
@@ -171,24 +175,21 @@ export default class Quiz extends BaseController {
 	}
 
 	public onNavigateToQuiz(): void {
-		const navContainer = this.getView()?.getParent()?.getParent() as any;
-		navContainer.to(this.byId("quizPage"));
+		// Already on quiz page
 	}
 
 	public onNavigateToDashboard(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const dashboardPage = sap.ui.getCore().byId("__xmlview1--dashboardPage");
-		if (dashboardPage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const dashboardPage = sap.ui.getCore().byId("dashboardView--dashboardPage");
+		if (navContainer && dashboardPage) {
 			navContainer.to(dashboardPage);
 		}
 	}
 
 	public onNavigateToProfile(): void {
-		const app = this.getOwnerComponent()?.getRootControl() as any;
-		const navContainer = app.byId("navContainer");
-		const profilePage = sap.ui.getCore().byId("__xmlview2--profilePage");
-		if (profilePage) {
+		const navContainer = sap.ui.getCore().byId("app--navContainer") as any;
+		const profilePage = sap.ui.getCore().byId("profileView--profilePage");
+		if (navContainer && profilePage) {
 			navContainer.to(profilePage);
 		}
 	}

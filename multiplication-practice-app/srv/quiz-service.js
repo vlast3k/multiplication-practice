@@ -109,18 +109,22 @@ module.exports = cds.service.impl(async function() {
   // Start a new practice session
   this.on('startSession', async (req) => {
     const { userId, difficulty } = req.data;
-    
+
+    // Generate UUID for the session
+    const sessionId = cds.utils.uuid();
+
     // Create new session
-    const session = await INSERT.into(PracticeSessions).entries({
+    await INSERT.into(PracticeSessions).entries({
+      ID: sessionId,
       user_ID: userId,
       startTime: new Date().toISOString(),
       difficultyLevel: difficulty,
       totalQuestions: 0,
       correctAnswers: 0
     });
-    
+
     return {
-      sessionId: session.ID || session
+      sessionId: sessionId
     };
   });
 
