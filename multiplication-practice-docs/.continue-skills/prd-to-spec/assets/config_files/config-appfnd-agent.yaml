@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.13 and guidelines given in the appfnd-agent-bootstrap skill
+  
+  Purpose: Build a fully working Pro-Code AI Agent per PRD.md requirements.
+  
+  Key constraints:
+  - You MUST follow the guidelines in the appfnd-agent-bootstrap skill
+  - Follow the file structure given in the appfnd-agent-bootstrap skill, i.e. Python files in app/ and config files in project root.
+  - You MUST use the agent framework defined in the appfnd-agent-bootstrap skill
+  - Use context7 MCP Server for framework documentation
+  - Local execution only (in-memory storage, no deployment)
+  - Only use public APIs, mock any private systems (like S/4HANA). Use minimal mock data.
+  - Exception: AI Core is fully available at runtime via LiteLLM (environment variables provided)
+  - No Git operations, no authentication, no documentation/READMEs
+  - Update requirements.txt for any new dependencies
+  - Never modify sys.path
+  - Map SAP Joule Studio/Skills concepts to standard agent tools
+  
+  Code quality:
+  - All Python code must compile with valid imports
+  - No src. import patterns
+  - All function parameters must be used in function body
+  - Consult context7 MCP server before using framework APIs
+  
+  Testing:
+  - Write exactly one unit test per tool and run it
+  - Write one unit test that executes an example flow of the complete agent and run it
+  - Fix validation failures immediately before proceeding
+  - Validate that the project structure matches the guidelines in the appfnd-agent-bootstrap skill
+
+rules:
+  proposal:
+    - You MUST read the appfnd-agent-bootstrap skill before creating the proposal to understand the patterns and framework for the agent
+    - Ensure all tasks align with appfnd-agent-bootstrap patterns
+    - Only create tasks fulfillable by the agent (no human tasks)
+
+  tasks:
+    - First task MUST be to re-read PRD.md and appfnd-agent-bootstrap skill
+    - All tasks must be agent-executable (no human intervention)
+    - During openspec-apply-change, implement ALL tasks from tasks.md
+    - Periodically review tasks.md to ensure complete coverage
+    - Never stop after partial implementation—complete all functionality

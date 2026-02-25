@@ -1,0 +1,55 @@
+schema: spec-driven
+
+context:  |
+  Tech stack: 
+  - Python 3.13
+  - langchain~=1.2.6 and langchain-core~=1.2.6 (LangChain v1 differs significantly from previous versions — you must use the `context7` MCP server to query the correct documentation)
+  - litellm~=1.81.0 and langchain-litellm~=0.3.5 for the connection to SAP AI Core / Generative AI Hub via LiteLLM (⚠️ Do NOT use sap-ai-sdk-gen / generative-ai-hub-sdk as they are not compatible with LangChain v1)
+  - fastapi~=0.128.0 and uvicorn~=0.40.0 for building the web server exposing the agent
+  - Designed to run on SAP Business Technology Platform (BTP) via Cloud Foundry
+  
+  The helper class **llm.py** provides:
+  - `llm.create_langchain_agent(tools: Sequence[BaseTool | Callable[..., Any] | dict[str, Any]], system_prompt: str) -> CompiledStateGraph` — required function for creating the agent using the new LangChain v1 agent API. You MUST use this to construct the agent.
+  - `llm.get_langchain_llm() -> BaseChatModel` — LangChain compatible class for accessing GPT-4o via LiteLLM and SAP Generative AI Hub
+  - `llm.embed(text: list[str]) -> List[float]` — if embeddings are required, use this method to directly generate them via text-embedding-3-small on SAP Generative AI Hub
+  - `llm.ResponseModel` — defines what the FastAPI server returns. The `response` field should contain the agent's final answer. The `traces` field should contain the full agent execution trace (e.g., tool calls).
+  - `llm.RequestBody` — defines the request body for the FastAPI endpoint for agent execution. Its only field is `prompt`, representing the user prompt.
+    
+  Purpose: Build a fully working Pro-Code AI Agent with LangChain per PRD.md requirements.
+  
+  Code Style:
+  - All application files (including tests, requirements, mocks) must be stored in `src/`. `src/` is NOT a Python package.
+  - NEVER create `src/__init__.py`
+  - NEVER import using the `src.` prefix
+  - Any Python package must be created as a subdirectory inside `src/` with its own `__init__.py`
+  - Update `src/requirements.txt` with any new dependencies
+  - Update `main.py`'s `run_agent()` function: take prompt from RequestBody, pass to agent, return final answer and trace in ResponseModel. Do NOT change method signature.
+  - Update line 160 of `static/index.html` (`<h1>✨ IBD Pro-Code Agent Demo</h1>`) with appropriate agent title
+  - Map SAP Joule Studio/Skills concepts to standard LangChain patterns
+  
+  Key constraints:
+  - Use context7 MCP Server for framework documentation
+  - Local execution only (in-memory storage, no BTP deployment in this stage)
+  - Only use public APIs, mock any private systems (like S/4HANA). Use minimal mock data.
+  - Exception: AI Core is fully available at runtime via LiteLLM (environment variables provided)
+  - No Git operations, no authentication, no documentation/READMEs
+  - Never modify sys.path
+  
+  Code quality:
+  - All Python code must compile with valid imports
+  - No src. import patterns
+  - All function parameters must be used in function body
+  - Consult context7 MCP server before using framework APIs
+  
+  Testing:
+  - Write exactly one unit test per tool and run it
+  - Write one unit test that executes an example flow of the complete agent and run it
+  - Fix validation failures immediately before proceeding
+
+rules:
+  tasks:
+    - First task MUST be to re-read PRD.md
+    - All tasks must be agent-executable (no human intervention)
+    - During openspec-apply-change, implement ALL tasks from tasks.md
+    - Periodically review tasks.md to ensure complete coverage
+    - Never stop after partial implementation—complete all functionality
