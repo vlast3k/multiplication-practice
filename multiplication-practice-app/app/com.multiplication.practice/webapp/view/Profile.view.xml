@@ -1,0 +1,103 @@
+<mvc:View
+	controllerName="com.multiplication.practice.controller.Profile"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:f="sap.ui.layout.form"
+	displayBlock="true">
+	<Page id="profilePage" title="My Profile">
+		<customHeader>
+			<Bar>
+				<contentLeft>
+					<Button id="quizNavBtn" text="Quiz" press=".onNavigateToQuiz"/>
+					<Button id="dashboardNavBtn" text="Dashboard" press=".onNavigateToDashboard"/>
+					<Button id="profileNavBtn" text="Profile" press=".onNavigateToProfile" type="Emphasized"/>
+				</contentLeft>
+				<contentRight>
+					<HBox alignItems="Center">
+						<Text id="avatarText" text="🦄" class="avatarIcon"/>
+					</HBox>
+				</contentRight>
+			</Bar>
+		</customHeader>
+		<content>
+			<VBox class="profileContainer">
+				<!-- Avatar and Name -->
+				<VBox alignItems="Center" class="profileHeader">
+					<Text id="avatarDisplay" text="🦄" class="profileAvatar" press=".onAvatarPress"/>
+					<Text id="nameDisplay" text="Emma" class="profileName" press=".onNamePress"/>
+				</VBox>
+				
+				<!-- Stats Summary -->
+				<VBox class="profileStats">
+					<f:Form editable="false">
+						<f:layout>
+							<f:ColumnLayout columnsM="2" columnsL="2" columnsXL="2"/>
+						</f:layout>
+						<f:formContainers>
+							<f:FormContainer>
+								<f:formElements>
+									<f:FormElement label="Total Points">
+										<f:fields>
+											<Text id="profilePoints" text="450"/>
+										</f:fields>
+									</f:FormElement>
+									<f:FormElement label="Total Questions">
+										<f:fields>
+											<Text id="profileQuestions" text="50"/>
+										</f:fields>
+									</f:FormElement>
+									<f:FormElement label="Overall Accuracy">
+										<f:fields>
+											<Text id="profileAccuracy" text="86.0%"/>
+										</f:fields>
+									</f:FormElement>
+								</f:formElements>
+							</f:FormContainer>
+							<f:FormContainer>
+								<f:formElements>
+									<f:FormElement label="Current Streak">
+										<f:fields>
+											<Text id="profileCurrentStreak" text="3"/>
+										</f:fields>
+									</f:FormElement>
+									<f:FormElement label="Best Streak">
+										<f:fields>
+											<Text id="profileBestStreak" text="12"/>
+										</f:fields>
+									</f:FormElement>
+									<f:FormElement label="Member Since">
+										<f:fields>
+											<Text id="profileMemberSince" text="January 1, 2024"/>
+										</f:fields>
+									</f:FormElement>
+								</f:formElements>
+							</f:FormContainer>
+						</f:formContainers>
+					</f:Form>
+				</VBox>
+				
+				<!-- Badges Section -->
+				<VBox class="profileBadges">
+					<Text text="My Badges" class="sectionTitle"/>
+					<FlexBox id="profileBadgesContainer" wrap="Wrap" class="badgesGrid">
+						<!-- Badges will be populated dynamically -->
+					</FlexBox>
+				</VBox>
+				
+				<!-- Settings -->
+				<Panel headerText="Settings" class="settingsPanel">
+					<VBox class="settingsList">
+						<HBox justifyContent="SpaceBetween" alignItems="Center" class="settingItem">
+							<Label text="Timer Enabled"/>
+							<Switch id="timerSwitch" state="false" change=".onSettingChange"/>
+						</HBox>
+						<HBox justifyContent="SpaceBetween" alignItems="Center" class="settingItem">
+							<Label text="Sound Effects"/>
+							<Switch id="soundSwitch" state="false" change=".onSettingChange"/>
+						</HBox>
+					</VBox>
+				</Panel>
+			</VBox>
+		</content>
+	</Page>
+</mvc:View>

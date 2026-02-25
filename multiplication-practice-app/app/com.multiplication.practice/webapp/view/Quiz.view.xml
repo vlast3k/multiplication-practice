@@ -1,0 +1,64 @@
+<mvc:View
+	controllerName="com.multiplication.practice.controller.Quiz"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:core="sap.ui.core"
+	displayBlock="true">
+	<Page id="quizPage" title="Multiplication Practice">
+		<customHeader>
+			<Bar>
+				<contentLeft>
+					<Button id="quizNavBtn" text="Quiz" press=".onNavigateToQuiz" type="Emphasized"/>
+					<Button id="dashboardNavBtn" text="Dashboard" press=".onNavigateToDashboard"/>
+					<Button id="profileNavBtn" text="Profile" press=".onNavigateToProfile"/>
+				</contentLeft>
+				<contentRight>
+					<HBox alignItems="Center">
+						<Text id="avatarText" text="🦄" class="avatarIcon"/>
+					</HBox>
+				</contentRight>
+			</Bar>
+		</customHeader>
+		<content>
+			<VBox alignItems="Center" justifyContent="Center" class="quizContainer">
+				<!-- Difficulty Selector -->
+				<SegmentedButton id="difficultySelector" selectionChange=".onDifficultyChange">
+					<items>
+						<SegmentedButtonItem key="Easy" text="Easy (1-5)"/>
+						<SegmentedButtonItem key="Medium" text="Medium (1-10)" pressed="true"/>
+						<SegmentedButtonItem key="Hard" text="Hard (1-12)"/>
+					</items>
+				</SegmentedButton>
+				
+				<!-- Streak Indicator -->
+				<HBox id="streakBox" alignItems="Center" visible="false" class="streakIndicator">
+					<Text text="🔥" class="streakIcon"/>
+					<Text id="streakText" text="" class="streakCount"/>
+				</HBox>
+				
+				<!-- Question Display -->
+				<VBox alignItems="Center" class="questionBox">
+					<Text id="questionText" text="7 × 8 = ?" class="questionDisplay"/>
+				</VBox>
+				
+				<!-- Answer Buttons (2x2 Grid) -->
+				<HBox class="answersGrid">
+					<VBox class="answerColumn">
+						<Button id="answer1" text="56" press=".onAnswerSelected" class="answerButton"/>
+						<Button id="answer2" text="54" press=".onAnswerSelected" class="answerButton"/>
+					</VBox>
+					<VBox class="answerColumn">
+						<Button id="answer3" text="58" press=".onAnswerSelected" class="answerButton"/>
+						<Button id="answer4" text="52" press=".onAnswerSelected" class="answerButton"/>
+					</VBox>
+				</HBox>
+				
+				<!-- Points Display -->
+				<HBox alignItems="Center" class="pointsDisplay">
+					<Text text="⭐" class="pointsIcon"/>
+					<Text id="pointsText" text="0 points" class="pointsCount"/>
+				</HBox>
+			</VBox>
+		</content>
+	</Page>
+</mvc:View>

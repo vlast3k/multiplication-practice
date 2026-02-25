@@ -1,0 +1,406 @@
+/* Child-Friendly Color Palette */
+:root {
+  --primary-blue: #4A90E2;
+  --primary-green: #7ED321;
+  --primary-yellow: #F5A623;
+  --primary-red: #E74C3C;
+  --primary-purple: #9B59B6;
+  --bg-light: #F8F9FA;
+  --text-dark: #2C3E50;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 18pt;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* Navigation Header */
+.sapMBar {
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-purple)) !important;
+  padding: 12px !important;
+}
+
+.sapMBarChild .sapMBtn {
+  min-height: 44px;
+  min-width: 80px;
+  font-size: 16pt;
+  margin: 0 4px;
+  border-radius: 8px;
+}
+
+.avatarIcon {
+  font-size: 36pt;
+  margin-right: 12px;
+}
+
+/* Quiz View Styles */
+.quizContainer {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.questionBox {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  margin: 24px 0;
+  box-shadow: var(--shadow);
+}
+
+.questionDisplay {
+  font-size: 48pt !important;
+  font-weight: bold;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+.answersGrid {
+  width: 100%;
+  max-width: 600px;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.answerColumn {
+  flex: 1;
+  gap: 16px;
+}
+
+.answerButton {
+  min-height: 80px !important;
+  font-size: 32pt !important;
+  font-weight: bold !important;
+  border-radius: 16px !important;
+  background: var(--primary-blue) !important;
+  color: white !important;
+  box-shadow: var(--shadow) !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.answerButton:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.answerButton:active {
+  transform: translateY(0);
+}
+
+/* Answer Feedback Animations */
+@keyframes flash {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: var(--primary-green); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.correct-answer {
+  border: 4px solid var(--primary-green) !important;
+  background: var(--primary-green) !important;
+  animation: flash 0.5s ease-in-out;
+}
+
+.incorrect-answer {
+  animation: shake 0.5s ease-in-out;
+  opacity: 0.6;
+}
+
+/* Streak Indicator */
+.streakIndicator {
+  background: var(--primary-yellow);
+  border-radius: 24px;
+  padding: 12px 24px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+
+.streakIcon {
+  font-size: 32pt !important;
+  margin-right: 8px;
+}
+
+.streakCount {
+  font-size: 24pt !important;
+  font-weight: bold;
+  color: white;
+}
+
+/* Points Display */
+.pointsDisplay {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 32px;
+  margin: 24px 0;
+  box-shadow: var(--shadow);
+}
+
+.pointsIcon {
+  font-size: 32pt !important;
+  margin-right: 8px;
+}
+
+.pointsCount {
+  font-size: 24pt !important;
+  font-weight: bold;
+  color: var(--primary-purple);
+}
+
+/* Dashboard Styles */
+.dashboardContainer {
+  padding: 24px;
+  gap: 24px;
+}
+
+.statsRow {
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 200px;
+  flex: 1;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.statLabel {
+  font-size: 14pt !important;
+  color: #7F8C8D;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 48pt !important;
+  font-weight: bold;
+  color: var(--primary-blue);
+}
+
+.statUnit {
+  font-size: 14pt !important;
+  color: #7F8C8D;
+  margin-top: 4px;
+}
+
+/* Badges Section */
+.badgesSection,
+.sessionsSection,
+.profileBadges {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+
+.sectionTitle {
+  font-size: 24pt !important;
+  font-weight: bold;
+  color: var(--text-dark);
+  margin-bottom: 16px;
+}
+
+.badgesGrid {
+  gap: 16px;
+  justify-content: center;
+}
+
+.badgeCard {
+  background: var(--bg-light);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 140px;
+  max-width: 160px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badgeIconEarned {
+  font-size: 64pt !important;
+  filter: none;
+}
+
+.badgeIconLocked {
+  font-size: 64pt !important;
+  filter: grayscale(100%);
+  opacity: 0.4;
+}
+
+.badgeName {
+  font-size: 14pt !important;
+  font-weight: bold;
+  color: var(--text-dark);
+  margin-top: 8px;
+}
+
+.badgeDescription {
+  font-size: 11pt !important;
+  color: #7F8C8D;
+  margin-top: 4px;
+}
+
+.badgeProgress {
+  font-size: 12pt !important;
+  color: var(--primary-blue);
+  margin-top: 8px;
+}
+
+.badgeEarned {
+  font-size: 12pt !important;
+  color: var(--primary-green);
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+/* Badge Celebration Dialog */
+.celebrationDialog {
+  text-align: center;
+}
+
+.celebrationText {
+  font-size: 24pt !important;
+  font-weight: bold;
+  color: var(--primary-purple);
+  padding: 24px;
+}
+
+@keyframes celebrate {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Profile Styles */
+.profileContainer {
+  padding: 24px;
+  gap: 24px;
+}
+
+.profileHeader {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+
+.profileAvatar {
+  font-size: 120pt !important;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.profileAvatar:hover {
+  transform: scale(1.1);
+}
+
+.profileName {
+  font-size: 32pt !important;
+  font-weight: bold;
+  color: var(--text-dark);
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.profileName:hover {
+  color: var(--primary-blue);
+}
+
+.profileStats {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.settingsPanel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin-top: 16px;
+}
+
+.settingsList {
+  gap: 16px;
+}
+
+.settingItem {
+  padding: 12px 0;
+  border-bottom: 1px solid #ECF0F1;
+}
+
+.settingItem:last-child {
+  border-bottom: none;
+}
+
+/* Avatar Selection Dialog */
+.avatarOption {
+  font-size: 48pt !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  margin: 8px !important;
+  border-radius: 12px !important;
+}
+
+.avatarOption:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow) !important;
+}
+
+/* Points Earned Animation */
+@keyframes pointsEarned {
+  0% { 
+    opacity: 0; 
+    transform: translateY(0); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(-20px); 
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .questionDisplay {
+    font-size: 36pt !important;
+  }
+  
+  .answerButton {
+    min-height: 60px !important;
+    font-size: 24pt !important;
+  }
+  
+  .statCard {
+    min-width: 100%;
+  }
+}
+
+/* Accessibility */
+.sapMBtn:focus {
+  outline: 3px solid var(--primary-yellow);
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .answerButton {
+    border: 2px solid white !important;
+  }
+  
+  .statValue {
+    color: #000 !important;
+  }
+}

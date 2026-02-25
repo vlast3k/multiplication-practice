@@ -1,0 +1,5 @@
+id;name;description;icon;requirementType;requirementValue
+getting-started;Getting Started;Complete your first 10 problems;🎯;problems_completed;10
+multiplication-master;Multiplication Master;Answer 100 problems correctly;🏆;problems_correct;100
+perfect-ten;Perfect Ten;Get 10 correct answers in a row;🔥;streak;10
+times-table-champion;Times Table Champion;Master all tables from 1 to 10;👑;tables_mastery;5

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Wrapper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="app-frame" title="Application Content"></iframe>
+
+    <script>
+        // Get iframe ID from query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const iframeId = urlParams.get('iframeId') || 'unknown';
+        
+        const iframe = document.getElementById('app-frame');
+        
+        // Store cleanup functions
+        const cleanupFunctions = [];
+        
+        /**
+         * Sanitize URL to prevent XSS attacks
+         * @param {string} url - The URL to sanitize
+         * @param {string} baseUrl - The base URL for relative URL resolution
+         * @returns {string|null} - Sanitized URL or null if unsafe
+         */
+        function sanitizeUrl(url, baseUrl) {
+            // Input validation
+            if (!url || typeof url !== 'string' || url.trim() === '') {
+                console.warn('[PREVIEW - WRAPPER] Invalid URL input');
+                return null;
+            }
+            
+            if (!baseUrl || typeof baseUrl !== 'string' || baseUrl.trim() === '') {
+                console.warn('[PREVIEW - WRAPPER] Invalid baseUrl input');
+                return null;
+            }
+            
+            // Trim whitespace
+            url = url.trim();
+            baseUrl = baseUrl.trim();
+            
+            try {
+                // Parse URLs (URL constructor handles decoding internally)
+                const base = new URL(baseUrl);
+                const resolved = new URL(url, base.href);
+                
+                // Only allow http and https protocols
+                const allowedProtocols = ['http:', 'https:'];
+                if (!allowedProtocols.includes(resolved.protocol)) {
+                    console.warn('[PREVIEW - WRAPPER] Blocked unsafe protocol:', resolved.protocol);
+                    return null;
+                }
+                // Enforce same-origin policy
+                if (resolved.origin !== base.origin) {
+                    console.warn('[PREVIEW - WRAPPER] Blocked cross-origin navigation:', resolved.origin);
+                    return null;
+                }
+                
+                // Check for dangerous patterns in the DECODED URL components
+                // This prevents bypassing via URL encoding
+                const dangerousPatterns = [
+                    /<script/i,
+                    /onerror=/i,
+                    /onload=/i,
+                    /onclick=/i,
+                    /onmouseover=/i,
+                    /<iframe/i,
+                    /<embed/i,
+                    /<object/i
+                ];
+                
+                // Check all URL components for dangerous patterns
+                const urlComponents = [
+                    resolved.href,
+                    resolved.pathname,
+                    resolved.search,
+                    resolved.hash
+                ];
+                
+                for (const component of urlComponents) {
+                    for (const pattern of dangerousPatterns) {
+                        if (pattern.test(component)) {
+                            console.warn('[PREVIEW - WRAPPER] Blocked dangerous pattern in decoded URL:', pattern);
+                            return null;
+                        }
+                    }
+                }
+                
+                return resolved.href;
+            } catch (e) {
+                console.error('[PREVIEW - WRAPPER] URL sanitization error:', e);
+                return null;
+            }
+        }
+        
+        /**
+         * Initialize the iframe with the target application URL
+         * Extracts tile name from query parameters and loads flpSandbox.html
+         */
+        function initializeIframe() {
+            console.log('[PREVIEW - WRAPPER] Initializing preview wrapper');
+            console.log('[PREVIEW - WRAPPER] Iframe ID:', iframeId);
+            
+            // Get tile name from query parameter (passed by server)
+            const tileName = urlParams.get('tile');
+            
+            // Load flpSandbox.html with the tile hash
+            let targetUrl = './flpSandbox.html';
+            if (tileName) {
+                targetUrl += '#' + tileName;
+                console.log('[PREVIEW - WRAPPER] Loading application with tile:', tileName);
+            } else {
+                console.log('[PREVIEW - WRAPPER] No tile specified, loading default');
+            }
+            
+            iframe.src = targetUrl;
+            console.log('[PREVIEW - WRAPPER] Loading URL:', targetUrl);
+        }
+        
+        // Initialize the iframe
+        initializeIframe();
+        
+        // Wait for iframe to load, then attach tracking
+        iframe.addEventListener('load', function() {
+            try {
+                // Clean up previous listeners if any
+                cleanupFunctions.forEach(cleanup => cleanup());
+                cleanupFunctions.length = 0;
+                
+                const iframeWindow = iframe.contentWindow;
+                const iframeDocument = iframe.contentDocument || iframeWindow.document;
+                
+                console.log('[PREVIEW - WRAPPER] Successfully accessed iframe content (same-origin)');
+                console.log('[PREVIEW - WRAPPER] Iframe URL:', iframeWindow.location.href);
+                
+                // Replace the current history entry (preview-wrapper.html) with the flpSandbox.html URL
+                // This prevents preview-wrapper.html from appearing in the history stack
+                // Only do this on initial load (not on back/forward navigation)
+                if (window.history.state === null || window.history.state.replaced !== true) {
+                    console.log('[PREVIEW - WRAPPER] Replacing history entry to remove wrapper from stack');
+                    window.history.replaceState(
+                        { replaced: true, iframeId: iframeId }, 
+                        '', 
+                        iframeWindow.location.href
+                    );
+                }
+                
+                // Track the last URL to avoid duplicate events
+                let lastTrackedUrl = iframeWindow.location.href;
+                
+                /**
+                 * Send message to parent window
+                 */
+                function sendToParent(messageData) {
+                    if (window.parent && window.parent !== window) {
+                        // This is a legitimate cross-origin communication scenario
+                        window.parent.postMessage(messageData, '*');
+                    }
+                }
+                
+                /**
+                 * Send navigation event to parent window
+                 */
+                function sendNavigationToParent(newUrl) {
+                    if (newUrl !== lastTrackedUrl) {
+                        lastTrackedUrl = newUrl;
+                        
+                        const navigationEvent = {
+                            type: 'navigation',
+                            url: newUrl,
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            title: iframeDocument.title || undefined
+                        };
+                        
+                        sendToParent(navigationEvent);
+                        console.log('[PREVIEW - WRAPPER] Navigation detected:', newUrl);
+                    }
+                }
+                
+                /**
+                 * Set up navigation tracking for the iframe
+                 * Intercepts History API, listens for navigation events, and polls for URL changes
+                 */
+                function setupNavigationTracking() {
+                    // Intercept History API to track programmatic navigation
+                    // This catches when the UI5 app uses history.pushState() or history.replaceState() to navigate
+                    const originalPushState = iframeWindow.history.pushState;
+                    const originalReplaceState = iframeWindow.history.replaceState;
+                    
+                    iframeWindow.history.pushState = function(...args) {
+                        originalPushState.apply(iframeWindow.history, args);
+                        sendNavigationToParent(iframeWindow.location.href);
+                    };
+                    
+                    iframeWindow.history.replaceState = function(...args) {
+                        originalReplaceState.apply(iframeWindow.history, args);
+                        sendNavigationToParent(iframeWindow.location.href);
+                    };
+                    
+                    // Add cleanup for History API overrides
+                    cleanupFunctions.push(() => {
+                        iframeWindow.history.pushState = originalPushState;
+                        iframeWindow.history.replaceState = originalReplaceState;
+                    });
+                    
+                    // Listen for browser back/forward button clicks
+                    // This catches when the user navigates using browser's back/forward buttons
+                    const popstateHandler = () => {
+                        sendNavigationToParent(iframeWindow.location.href);
+                    };
+                    iframeWindow.addEventListener('popstate', popstateHandler);
+                    cleanupFunctions.push(() => iframeWindow.removeEventListener('popstate', popstateHandler));
+                    
+                    // Listen for hash-based navigation
+                    // This catches when the URL hash changes (e.g., #detail → #list)
+                    const hashchangeHandler = () => {
+                        sendNavigationToParent(iframeWindow.location.href);
+                    };
+                    iframeWindow.addEventListener('hashchange', hashchangeHandler);
+                    cleanupFunctions.push(() => iframeWindow.removeEventListener('hashchange', hashchangeHandler));
+                    
+                    // Poll for URL changes as a safety net
+                    // This catches any navigation that doesn't trigger the above events
+                    const pollInterval = setInterval(() => {
+                        const currentUrl = iframeWindow.location.href;
+                        if (currentUrl !== lastTrackedUrl) {
+                            sendNavigationToParent(currentUrl);
+                        }
+                    }, 500);
+                    cleanupFunctions.push(() => clearInterval(pollInterval));
+                    
+                    console.log('[PREVIEW - WRAPPER] Navigation tracking initialized');
+                }
+                
+                /**
+                 * Set up error tracking for the iframe
+                 * Captures console errors/warnings, unhandled errors, and promise rejections
+                 */
+                function setupErrorTracking() {
+                    // Capture console.error
+                    const originalConsoleError = iframeWindow.console.error;
+                    iframeWindow.console.error = function(...args) {
+                        const errorData = {
+                            type: 'error',
+                            errorType: 'console.error',
+                            message: args.map(arg => {
+                                if (arg instanceof Error) {
+                                    return arg.message;
+                                }
+                                return String(arg);
+                            }).join(' '),
+                            stack: args.find(arg => arg instanceof Error)?.stack,
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            url: iframeWindow.location.href,
+                            args: args.map(arg => {
+                                try {
+                                    return JSON.parse(JSON.stringify(arg));
+                                } catch {
+                                    return String(arg);
+                                }
+                            })
+                        };
+                        
+                        sendToParent(errorData);
+                        console.log('[PREVIEW - WRAPPER] Captured console.error:', errorData.message);
+                        
+                        // Still call original console.error
+                        originalConsoleError.apply(iframeWindow.console, args);
+                    };
+                    cleanupFunctions.push(() => {
+                        iframeWindow.console.error = originalConsoleError;
+                    });
+                    
+                    // Capture console.warn
+                    const originalConsoleWarn = iframeWindow.console.warn;
+                    iframeWindow.console.warn = function(...args) {
+                        const errorData = {
+                            type: 'error',
+                            errorType: 'console.warn',
+                            message: args.map(arg => String(arg)).join(' '),
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            url: iframeWindow.location.href,
+                            args: args.map(arg => {
+                                try {
+                                    return JSON.parse(JSON.stringify(arg));
+                                } catch {
+                                    return String(arg);
+                                }
+                            })
+                        };
+                        
+                        sendToParent(errorData);
+                        
+                        // Still call original console.warn
+                        originalConsoleWarn.apply(iframeWindow.console, args);
+                    };
+                    cleanupFunctions.push(() => {
+                        iframeWindow.console.warn = originalConsoleWarn;
+                    });
+                    
+                    // Capture unhandled JavaScript errors
+                    const errorHandler = (event) => {
+                        const errorData = {
+                            type: 'error',
+                            errorType: 'unhandledError',
+                            message: event.message || 'Unhandled error',
+                            stack: event.error?.stack,
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            url: iframeWindow.location.href,
+                            filename: event.filename,
+                            lineno: event.lineno,
+                            colno: event.colno
+                        };
+                        
+                        sendToParent(errorData);
+                        console.log('[PREVIEW - WRAPPER] Captured unhandled error:', errorData.message);
+                    };
+                    iframeWindow.addEventListener('error', errorHandler);
+                    cleanupFunctions.push(() => iframeWindow.removeEventListener('error', errorHandler));
+                    
+                    // Capture unhandled promise rejections
+                    const rejectionHandler = (event) => {
+                        const errorData = {
+                            type: 'error',
+                            errorType: 'unhandledRejection',
+                            message: event.reason?.message || String(event.reason) || 'Unhandled promise rejection',
+                            stack: event.reason?.stack,
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            url: iframeWindow.location.href
+                        };
+                        
+                        sendToParent(errorData);
+                        console.log('[PREVIEW - WRAPPER] Captured unhandled rejection:', errorData.message);
+                    };
+                    iframeWindow.addEventListener('unhandledrejection', rejectionHandler);
+                    cleanupFunctions.push(() => iframeWindow.removeEventListener('unhandledrejection', rejectionHandler));
+                    
+                    console.log('[PREVIEW - WRAPPER] Error tracking initialized');
+                }
+                
+                /**
+                 * Set up user activity tracking for the iframe
+                 * Monitors user interactions and sends debounced activity events to parent
+                 */
+                function setupUserActivityTracking() {
+                    /**
+                     * Generic debounce function
+                     */
+                    const debounce = (func, delay) => {
+                        let timeoutId;
+                        return (...args) => {
+                            clearTimeout(timeoutId);
+                            timeoutId = setTimeout(() => {
+                                func(...args);
+                            }, delay);
+                        };
+                    };
+                    
+                    /**
+                     * Send user activity event to parent
+                     */
+                    const sendUserActivity = (eventType) => {
+                        const activityData = {
+                            type: 'userActivity',
+                            eventType: eventType,
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId,
+                            source: 'preview'
+                        };
+                        
+                        sendToParent(activityData);
+                    }
+                    
+                    // Define user activity events with their debounce delays
+                    const userActivityEvents = [
+                        { name: 'mousemove', delay: 500 },
+                        { name: 'scroll', delay: 300 },
+                        { name: 'click', delay: 100 },
+                        { name: 'keydown', delay: 100 },
+                        { name: 'mousedown', delay: 100 },
+                        { name: 'touchstart', delay: 100 },
+                        { name: 'focus', delay: 100 },
+                        { name: 'input', delay: 100 }
+                    ];
+                    
+                    // Set up event listeners with debounced handlers
+                    userActivityEvents.forEach(({ name, delay }) => {
+                        const handler = debounce(() => sendUserActivity(name), delay);
+                        iframeWindow.addEventListener(name, handler, { passive: true, capture: true });
+                        cleanupFunctions.push(() => iframeWindow.removeEventListener(name, handler, { capture: true }));
+                    });
+                    
+                    console.log('[PREVIEW - WRAPPER] User activity tracking initialized');
+                }
+                
+                /**
+                 * Set up app visibility detection using IntersectionObserver
+                 * Detects when the UI5 app content is actually visible and rendered
+                 * Sends 'app-visible' marker to parent when app is ready
+                 */
+                function setupAppVisibilityDetection() {
+                    console.log('[PREVIEW - WRAPPER] Setting up app visibility detection...');
+                    
+                    let checkAttempts = 0;
+                    const maxAttempts = 180; // 90 seconds (500ms * 180)
+                    
+                    const waitForContainer = setInterval(() => {
+                        checkAttempts++;
+                        
+                        // Look for the UI5 app body element with content
+                        const appBody = iframeDocument.body;
+                        
+                        if (appBody && appBody.children.length > 0) {
+                            clearInterval(waitForContainer);
+                            console.log('[PREVIEW - WRAPPER] App container found, setting up IntersectionObserver');
+                            
+                            // Use IntersectionObserver to detect when content is visible
+                            const observer = new IntersectionObserver((entries) => {
+                                entries.forEach(entry => {
+                                    // Check if element is visible and has meaningful size
+                                    if (entry.isIntersecting && 
+                                        entry.intersectionRatio > 0.5 &&
+                                        entry.boundingClientRect.height > 100) {
+                                        
+                                        console.log('[PREVIEW - WRAPPER] App content is visible:');
+
+                                        
+                                        // Send app-visible marker to parent
+                        sendToParent({
+                            type: 'app-visible',
+                            message: 'App is fully visible and rendered',
+                            timestamp: new Date().toISOString(),
+                            iframeId: iframeId
+                        });
+                                        
+                                        // Disconnect observer after detection
+                                        observer.disconnect();
+                                    }
+                                });
+                            }, {
+                                threshold: [0.5] // Trigger when 50% visible
+                            });
+                            
+                            // Observe the body element
+                            observer.observe(appBody);
+                            
+                            // Cleanup after 30 seconds
+                            setTimeout(() => {
+                                observer.disconnect();
+                                console.log('[PREVIEW - WRAPPER] Visibility observer timeout - cleaning up');
+                            }, 30000);
+                            
+                            // Add to cleanup functions
+                            cleanupFunctions.push(() => observer.disconnect());
+                            
+                        } else if (checkAttempts >= maxAttempts) {
+                            clearInterval(waitForContainer);
+                            console.warn('[PREVIEW - WRAPPER] Timeout waiting for app container (30 seconds)');
+                        }
+                    }, 500);
+                    
+                    // Cleanup interval on timeout
+                    setTimeout(() => clearInterval(waitForContainer), 30000);
+                    cleanupFunctions.push(() => clearInterval(waitForContainer));
+                }
+                
+                // Initialize all tracking systems
+                setupNavigationTracking();
+                setupErrorTracking();
+                setupUserActivityTracking();
+                setupAppVisibilityDetection();
+                
+                // Listen for navigate-history commands from parent (ui-app-iframe-wrapper.html)
+                window.addEventListener('message', function(event) {
+                    if (event.data && event.data.type === 'navigate-history') {
+                        console.log('[PREVIEW - WRAPPER] Received navigate-history command:', event.data);
+                        
+                        const steps = event.data.steps;
+                        const targetUrl = event.data.targetUrl;
+
+                        if (!targetUrl) {
+                            console.warn('[PREVIEW - WRAPPER] Navigation blocked - invalid or dangerous URL');
+                            return;
+                        }
+                        try {
+                            if (iframeWindow) {
+                                console.log(`[PREVIEW - WRAPPER] Navigating to target URL: ${targetUrl}`);
+                                console.log(`[PREVIEW - WRAPPER] Current iframe URL: ${iframeWindow.location.href}`);
+                                console.log(`[PREVIEW - WRAPPER] Steps: ${steps}`);
+                                console.log(`[PREVIEW - WRAPPER] Iframe history.length: ${iframeWindow.history.length}`);
+                                
+                                // Parse URLs to determine navigation type
+                                try {
+                                    const currentUrl = new URL(iframeWindow.location.href);
+                                    
+                                    // Sanitize the target URL
+                                    const sanitizedUrl = sanitizeUrl(targetUrl, currentUrl.href);
+                                    if (!sanitizedUrl) {
+                                        console.error('[PREVIEW - WRAPPER] URL sanitization blocked unsafe URL:', targetUrl);
+                                        return;
+                                    }
+                                    
+                                    const target = new URL(sanitizedUrl);
+                                    
+                                    console.log(`[PREVIEW - WRAPPER] Current: ${currentUrl.href}`);
+                                    console.log(`[PREVIEW - WRAPPER] Target: ${target.href}`);
+                                    
+                                    // Check if both are flpSandbox.html (within-app navigation)
+                                    const currentIsSandbox = currentUrl.pathname.includes('flpSandbox.html');
+                                    const targetIsSandbox = target.pathname.includes('flpSandbox.html');
+                                    
+                                    if (currentIsSandbox && targetIsSandbox) {
+                                        // Both are in sandbox - use hash navigation (history.go doesn't work reliably)
+                                        console.log(`[PREVIEW - WRAPPER] Within-sandbox navigation, setting hash: ${target.hash}`);
+                                        iframeWindow.location.hash = target.hash;
+                                    } else if (currentUrl.pathname === target.pathname) {
+                                        // Same page, different hash
+                                        console.log(`[PREVIEW - WRAPPER] Same-page navigation, setting hash: ${target.hash}`);
+                                        iframeWindow.location.hash = target.hash;
+                                    } else {
+                                        // Different pages (e.g., sandbox -> wrapper) - need to reload
+                                        console.log('[PREVIEW - WRAPPER] Cross-page navigation, reloading');
+                                        iframeWindow.location.href = target.href;
+                                    }
+                                } catch (urlError) {
+                                    console.error('[PREVIEW - WRAPPER] URL parsing failed:', urlError);
+                                    // Sanitize URL even in fallback case
+                                    const fallbackSanitized = sanitizeUrl(targetUrl, iframeWindow.location.href);
+                                    if (fallbackSanitized) {
+                                        iframeWindow.location.href = fallbackSanitized;
+                                    } else {
+                                        console.error('[PREVIEW - WRAPPER] Navigation blocked - unsafe URL in fallback');
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error('[PREVIEW - WRAPPER] Failed to navigate:', e);
+                        }
+                    }
+                });
+
+                // Send ready signal to parent
+                sendToParent({
+                    type: 'wrapper-ready',
+                    message: 'Preview wrapper initialized',
+                    timestamp: new Date().toISOString(),
+                    iframeId: iframeId
+                });
+                
+                console.log('[PREVIEW - WRAPPER] Tracking initialized successfully');
+                
+            } catch (e) {
+                console.error('[PREVIEW - WRAPPER] Cannot access iframe content (cross-origin):', e);
+                
+                // Send error to parent
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'wrapper-error',
+                        message: 'Cannot access iframe content - cross-origin restriction',
+                        error: e.message,
+                        timestamp: new Date().toISOString(),
+                        iframeId: iframeId
+                    }, '*');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+*.log
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CAP
+gen/
+*.db
+*.sqlite
+_out/
+
+# UI5
+webapp/resources/
+webapp/test-resources/
+
+# Temporary files
+*.tmp
+.*.tmp

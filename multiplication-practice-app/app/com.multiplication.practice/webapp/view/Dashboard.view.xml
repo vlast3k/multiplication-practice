@@ -1,0 +1,63 @@
+<mvc:View
+	controllerName="com.multiplication.practice.controller.Dashboard"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	displayBlock="true">
+	<Page id="dashboardPage" title="Progress Dashboard">
+		<customHeader>
+			<Bar>
+				<contentLeft>
+					<Button id="quizNavBtn" text="Quiz" press=".onNavigateToQuiz"/>
+					<Button id="dashboardNavBtn" text="Dashboard" press=".onNavigateToDashboard" type="Emphasized"/>
+					<Button id="profileNavBtn" text="Profile" press=".onNavigateToProfile"/>
+				</contentLeft>
+				<contentRight>
+					<HBox alignItems="Center">
+						<Text id="avatarText" text="🦄" class="avatarIcon"/>
+					</HBox>
+				</contentRight>
+			</Bar>
+		</customHeader>
+		<content>
+			<VBox class="dashboardContainer">
+				<!-- Stats Summary -->
+				<HBox class="statsRow">
+					<VBox class="statCard">
+						<Text text="Total Points" class="statLabel"/>
+						<Text id="totalPointsText" text="450" class="statValue"/>
+						<Text text="pts" class="statUnit"/>
+					</VBox>
+					<VBox class="statCard">
+						<Text text="Accuracy" class="statLabel"/>
+						<Text id="accuracyText" text="86.0%" class="statValue"/>
+					</VBox>
+					<VBox class="statCard">
+						<Text text="Total Questions" class="statLabel"/>
+						<Text id="totalQuestionsText" text="50" class="statValue"/>
+						<Text text="problems" class="statUnit"/>
+					</VBox>
+				</HBox>
+				
+				<!-- Badges Section -->
+				<VBox class="badgesSection">
+					<Text text="Achievements" class="sectionTitle"/>
+					<FlexBox id="badgesContainer" wrap="Wrap" class="badgesGrid">
+						<!-- Badges will be populated dynamically -->
+					</FlexBox>
+				</VBox>
+				
+				<!-- Recent Sessions -->
+				<VBox class="sessionsSection">
+					<Text text="Recent Practice Sessions" class="sectionTitle"/>
+					<List id="sessionsList" items="{/sessions}">
+						<StandardListItem
+							title="{date}"
+							description="{questions} questions"
+							info="{stars}"
+							type="Inactive"/>
+					</List>
+				</VBox>
+			</VBox>
+		</content>
+	</Page>
+</mvc:View>
